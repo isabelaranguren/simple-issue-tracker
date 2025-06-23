@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "rootDir": ".", // allows both src/ and server.ts
+    "outDir": "dist", // compiled files will go to dist/
+    "target": "ES6",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["src", "server.ts"]
+}
