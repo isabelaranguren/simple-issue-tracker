@@ -1,57 +1,69 @@
 import { useState } from "react";
-import { createIssue } from "../../api/issue";
-import { useNavigate, useParams } from "react-router-dom";
 
-export default function CreateIssue() {
-  const { projectId } = useParams<{ projectId: string }>();
-  const navigate = useNavigate();
+interface CreateIssueProps {
+  projectId: string;
+  onCreated?: () => void; 
+}
 
+export default function CreateIssue({ projectId, onCreated }: CreateIssueProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  if (!projectId) {
-    return <div>Project ID is missing.</div>;
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
 
     try {
-      await createIssue({ title, description, projectId });
-      navigate(`/projects/${projectId}`); // back to project details or issue list
+      const res = await fetch("/api/issues", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, description, projectId }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Failed to create issue");
+      }
+
+      setTitle("");
+      setDescription("");
+      if (onCreated) onCreated(); 
     } catch (err: any) {
-      setError(err.message || "Failed to create issue");
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 mt-10 bg-white rounded shadow">
-      <h1 className="text-2xl font-bold mb-6">Create New Issue</h1>
-      {error && <div className="mb-4 text-red-600">{error}</div>}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          placeholder="Issue title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-          className="w-full px-4 py-2 border rounded"
-        />
-        <textarea
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="w-full px-4 py-2 border rounded"
-          rows={4}
-        />
-        <button
-          type="submit"
-          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
-        >
-          Create Issue
-        </button>
-      </form>
-    </div>
+    <form onSubmit={handleSubmit} className="mb-6">
+      <h2 className="text-xl font-semibold mb-2">Create New Issue</h2>
+      {error && <p className="text-red-600 mb-2">{error}</p>}
+      <input
+        type="text"
+        placeholder="Issue title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        className="w-full mb-2 px-4 py-2 border border-gray-300"
+        required
+      />
+      <textarea
+        placeholder="Issue description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        className="w-full mb-2 px-4 py-2 border border-gray-300"
+      />
+      <button
+        type="submit"
+        disabled={loading}
+        className="bg-black text-white px-4 py-2 hover:bg-gray-800"
+      >
+        {loading ? "Creating..." : "Create Issue"}
+      </button>
+    </form>
   );
 }

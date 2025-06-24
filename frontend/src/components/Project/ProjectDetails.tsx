@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useProject } from "../../hooks/useProject";
 import { useIssues } from "../../hooks/useIssues";
 import { IssueList } from "../Issues/IssueList";
+import CreateIssue from "../Issues/CreateIssue"; 
 
 export default function ProjectPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -11,11 +12,13 @@ export default function ProjectPage() {
     loading: loadingProject,
     error: errorProject,
   } = useProject(projectId);
+
   const {
     issues,
     loading: loadingIssues,
     error: errorIssues,
     toggleIssueStatus,
+    refetch,
   } = useIssues(projectId);
 
   if (loadingProject) return <div className="p-4">Loading project...</div>;
@@ -36,6 +39,9 @@ export default function ProjectPage() {
         error={errorIssues}
         onToggleStatus={toggleIssueStatus}
       />
+      <div className="max-w-4xl mx-auto p-6">
+        <CreateIssue projectId={project.id} onCreated={refetch} />
+      </div>
     </div>
   );
 }

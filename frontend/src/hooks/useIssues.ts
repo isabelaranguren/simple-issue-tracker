@@ -12,6 +12,7 @@ interface UseIssuesResult {
   loading: boolean;
   error: string | null;
   toggleIssueStatus: (issueId: string, currentStatus: string) => Promise<void>;
+  refetch: () => void;
 }
 
 export function useIssues(projectId: string | undefined): UseIssuesResult {
@@ -19,10 +20,12 @@ export function useIssues(projectId: string | undefined): UseIssuesResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchIssues = useCallback(async (id: string) => {
+  const fetchIssues = useCallback(async () => {
+    if (!projectId) return;
+
     setLoading(true);
     try {
-      const res = await fetch(`/api/issues?projectId=${id}`, {
+      const res = await fetch(`/api/issues?projectId=${projectId}`, {
         credentials: "include",
       });
       if (!res.ok) {
@@ -38,13 +41,11 @@ export function useIssues(projectId: string | undefined): UseIssuesResult {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [projectId]);
 
   useEffect(() => {
-    if (projectId) {
-      fetchIssues(projectId);
-    }
-  }, [projectId, fetchIssues]);
+    fetchIssues();
+  }, [fetchIssues]);
 
   const toggleIssueStatus = useCallback(
     async (issueId: string, currentStatus: string) => {
@@ -80,5 +81,5 @@ export function useIssues(projectId: string | undefined): UseIssuesResult {
     []
   );
 
-  return { issues, loading, error, toggleIssueStatus };
+  return { issues, loading, error, toggleIssueStatus, refetch: fetchIssues };
 }
