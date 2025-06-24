@@ -8,7 +8,7 @@ export default function LoginForm() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password); // Calling login with both email and password
+    await login(email, password);
   };
 
   return (
