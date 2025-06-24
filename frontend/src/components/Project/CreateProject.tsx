@@ -20,7 +20,7 @@ const CreateProject = () => {
     setIsSubmitting(true);
     try {
       await createProject({ name });
-      navigate("/projects"); // ✅ Redirect to project list
+      navigate("/projects");
     } catch (err: any) {
       setError(err.message || "Failed to create project. Please try again.");
     } finally {
@@ -139,19 +139,6 @@ const CreateProject = () => {
                   </>
                 ) : (
                   <>
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                      />
-                    </svg>
                     Create Project
                   </>
                 )}
