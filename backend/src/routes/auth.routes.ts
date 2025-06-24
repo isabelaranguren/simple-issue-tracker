@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { register, login, logout } from "../controllers/auth.controller";
-// import {loginLimiter} from '../utils/rateLimit';
 
 const AuthRoutes = Router();
 

@@ -85,20 +85,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-import { Request, Response } from "express";
-
 /**
  * Logout user by clearing the auth token cookie.
  */
 export const logout = (req: Request, res: Response): void => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    domain:
-      process.env.NODE_ENV === "production"
-        ? process.env.COOKIE_DOMAIN
-        : undefined,
+    secure: process.env.NODE_ENV === "production",
     path: "/",
   });
 

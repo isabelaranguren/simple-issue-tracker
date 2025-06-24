@@ -63,6 +63,30 @@ export const getProjects = async (
   }
 };
 
+export const getProjectById = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  const projectId = req.params.projectId;
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    res.status(401).json({ message: "Unauthorized" });
+    return; 
+  }
+
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+  });
+
+  if (!project || project.ownerId !== userId) {
+    res.status(404).json({ message: "Project not found or access denied" });
+    return; 
+  }
+
+  res.json(project);
+};
+
 /**
  * Delete Project
  */
