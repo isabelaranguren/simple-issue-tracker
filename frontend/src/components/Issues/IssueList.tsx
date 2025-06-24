@@ -1,124 +1,68 @@
-import React, { useEffect, useState } from "react";
-import {
-  getIssues,
-  createIssue,
-  updateIssue,
-  deleteIssue,
-  type Issue,
-} from "../../api/issue";
+import React from "react";
 
-interface IssueListProps {
-  projectId: string;
+interface Issue {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
 }
 
-export const IssueList: React.FC<IssueListProps> = ({ projectId }) => {
-  const [issues, setIssues] = useState<Issue[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [newDescription, setNewDescription] = useState("");
-  const [error, setError] = useState<string | null>(null);
+interface IssueListProps {
+  issues: Issue[];
+  loading: boolean;
+  error: string | null;
+  onToggleStatus: (issueId: string, currentStatus: string) => void;
+}
 
-  // Fetch issues when component mounts or projectId changes
-  useEffect(() => {
-    async function fetchIssues() {
-      setLoading(true);
-      try {
-        const data = await getIssues(projectId);
-        setIssues(data);
-        setError(null);
-      } catch (err) {
-        setError("Failed to load issues.");
-      }
-      setLoading(false);
-    }
-
-    fetchIssues();
-  }, [projectId]);
-
-  // Create a new issue
-  const handleCreateIssue = async () => {
-    if (!newTitle) return;
-
-    try {
-      const created = await createIssue({
-        title: newTitle,
-        description: newDescription,
-        projectId,
-      });
-      setIssues((prev) => [...prev, created]);
-      setNewTitle("");
-      setNewDescription("");
-      setError(null);
-    } catch {
-      setError("Failed to create issue.");
-    }
-  };
-
-  // Toggle issue status (open/solved)
-  const toggleStatus = async (issue: Issue) => {
-    const newStatus = issue.status === "open" ? "solved" : "open";
-    try {
-      const updated = await updateIssue(issue.id, { status: newStatus });
-      setIssues((prev) => prev.map((i) => (i.id === issue.id ? updated : i)));
-      setError(null);
-    } catch {
-      setError("Failed to update issue.");
-    }
-  };
-
-  // Delete issue
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteIssue(id);
-      setIssues((prev) => prev.filter((i) => i.id !== id));
-      setError(null);
-    } catch {
-      setError("Failed to delete issue.");
-    }
-  };
+export const IssueList: React.FC<IssueListProps> = ({
+  issues,
+  loading,
+  error,
+  onToggleStatus,
+}) => {
+  if (loading) return <div>Loading issues...</div>;
+  if (error)
+    return <div className="text-red-600">Error loading issues: {error}</div>;
+  if (issues.length === 0) return <p>No issues found for this project.</p>;
 
   return (
-    <div>
-      <h2>Issues</h2>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      {loading ? (
-        <p>Loading issues...</p>
-      ) : (
-        <>
-          {issues.length === 0 && <p>No issues yet.</p>}
-
-          <ul>
-            {issues.map((issue) => (
-              <li key={issue.id}>
-                <strong>{issue.title}</strong> - {issue.status}
-                <button onClick={() => toggleStatus(issue)}>
-                  Mark {issue.status === "open" ? "Solved" : "Open"}
-                </button>
-                <button onClick={() => handleDelete(issue.id)}>Delete</button>
-                <p>{issue.description}</p>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-
-      <h3>Create New Issue</h3>
-      <input
-        type="text"
-        placeholder="Title"
-        value={newTitle}
-        onChange={(e) => setNewTitle(e.target.value)}
-      />
-      <br />
-      <textarea
-        placeholder="Description"
-        value={newDescription}
-        onChange={(e) => setNewDescription(e.target.value)}
-      />
-      <br />
-      <button onClick={handleCreateIssue}>Add Issue</button>
-    </div>
+    <ul className="space-y-4">
+      {issues.map((issue) => (
+        <li
+          key={issue.id}
+          className="p-4 border border-gray-300 dark:border-gray-700 flex justify-between items-center"
+        >
+          <div>
+            <h3 className="text-xl font-medium">{issue.title}</h3>
+            <p className="text-gray-700 dark:text-gray-300">
+              {issue.description}
+            </p>
+            <p className="mt-1 text-sm font-semibold">
+              Status:{" "}
+              <span
+                className={
+                  issue.status === "solved"
+                    ? "text-green-600"
+                    : "text-yellow-600"
+                }
+              >
+                {issue.status}
+              </span>
+            </p>
+          </div>
+          <div>
+            <label className="inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={issue.status === "solved"}
+                onChange={() => onToggleStatus(issue.id, issue.status)}
+                className="form-checkbox h-5 w-5 text-blue-600"
+              />
+              <span className="ml-2 text-sm select-none">Solved</span>
+            </label>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 };

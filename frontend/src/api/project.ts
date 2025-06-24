@@ -2,6 +2,7 @@ export interface Project {
   id: string;
   name: string;
   ownerId: string;
+  
 }
 
 interface CreateProjectData {
@@ -52,12 +53,18 @@ export async function deleteProject(projectId: string): Promise<void> {
 
 export async function getProjectById(projectId: string) {
   const response = await fetch(`/api/projects/${projectId}`, {
-    credentials: "include", // so cookies (like auth) are sent
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include", 
   });
 
   if (!response.ok) {
-    throw new Error("Failed to fetch project");
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch project");
   }
 
-  return response.json();
-}
+  const project = await response.json();
+  return project;
+};

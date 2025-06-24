@@ -150,7 +150,7 @@ export const updateIssue = async (
   }
 };
 
-export const markIssueAsSolved = async (
+export const changeIssueStatus = async (
   req: AuthRequest,
   res: Response
 ): Promise<void> => {
@@ -163,7 +163,7 @@ export const markIssueAsSolved = async (
       return;
     }
 
-    // Verify issue exists and ownership
+    // Find issue and include project to check ownership
     const issue = await prisma.issue.findUnique({
       where: { id: issueId },
       include: { project: true },
@@ -179,15 +179,17 @@ export const markIssueAsSolved = async (
       return;
     }
 
-    // Update status
+    // Toggle status between "open" and "solved"
+    const newStatus = issue.status === "solved" ? "open" : "solved";
+
     const updatedIssue = await prisma.issue.update({
       where: { id: issueId },
-      data: { status: "solved" },
+      data: { status: newStatus },
     });
 
     res.status(200).json(updatedIssue);
   } catch (error) {
-    console.error("Mark issue as solved error:", error);
+    console.error("Toggle issue status error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
